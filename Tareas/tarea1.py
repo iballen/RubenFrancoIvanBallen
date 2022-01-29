@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from tqdm import tqdm 
 import matplotlib.animation as anim
+from mpl_toolkits import mplot3d
 
 class particle():
 
@@ -21,7 +22,7 @@ class particle():
         self.radius = radius
         self.Id = Id
 
-        self.energia = 1/2*m*(self.v[0]**2+self.v[1]**2)+m*9.8*self.r[1]
+        self.energia = (1/2)*m*(self.v[0]**2+self.v[1]**2)+m*9.8*self.r[1]
         self.EVector = np.zeros(len(t))
 
     #Métodos
@@ -35,13 +36,13 @@ class particle():
         self.v += self.a*self.dt
         self.energia = 1/2*self.m*(self.v[0]**2+self.v[1]**2)+self.m*9.8*(self.r[1]+20)
 
-    def CheckWallLimits(self,limits,dim):
+    def CheckWallLimits(self,limits,dim,e):
 
         for i in range(dim):
             if self.r[i] + self.GetRadius() > limits[i]:
-                self.v[i] = -0.9*self.v[i]
+                self.v[i] = -e*self.v[i]
             if self.r[i] - self.GetRadius() < -limits[i]:
-                self.v[i] = -0.9*self.v[i]
+                self.v[i] = -e*self.v[i]
 
     def ReduceSize(self,factor):
         self.RrVector = np.array([self.rVector[0]])
@@ -83,7 +84,7 @@ class particle():
 
 def RunSimulation_1(t,p,Limits):
     for it in tqdm(range(len(t))):
-        p.CheckWallLimits(Limits,len(Limits))
+        p.CheckWallLimits(Limits,len(Limits),0.9)
         p.Evolution(it)
     return p
 
@@ -100,7 +101,6 @@ Limits = np.array([20,20])
 p = particle(r0,v0,a0,t,1,1,1)
 
 p = RunSimulation_1(t,p,Limits)
-print(p.GetEVector(),t)
 
 #Reducción
 def ReduceTime(t,factor):
@@ -154,3 +154,72 @@ Con una definición temporal de 0.01, estimamos con la gráfica y la animación 
 alrededor de los 19 segundos la pelota deja de rebotar. Sin embargo, acalaramos que necesitamos
 más definición debido a que el resultado obtenido acumuló bastante error proveniente del método
 de Euler."""
+
+dt = 0.01
+tmax = 10
+t = np.arange(0,tmax+dt,dt)
+
+#Simulacion 2
+def GetParticles(N,Limit,L_Velo,Dim=3,dt=0.01):
+    Particles = list()
+    for i in range(N):
+        r0 = np.random.uniform(-Limit+1.0,Limit-1.0,size=Dim)
+        v0 = np.random.uniform(-L_Velo,L_Velo,size=Dim)
+        a0 = np.zeros(Dim)
+        p = particle(r0,v0,a0,t,1.,1.,i)
+        Particles.append(p)
+    return Particles
+
+def RunSimulation_2(t,N = 100,L_Velo = 6):
+    Particles = GetParticles(N,10,L_Velo)
+    for it in tqdm(range(len(t))):
+        for i in range(len(Particles)):
+            Particles[i].CheckWallLimits([10,10,10],3,1)
+            Particles[i].Evolution(it)
+    return Particles
+
+Datos_simulacion_2 = RunSimulation_2(t)
+
+def ReduceTimeMultiP(t,factor):
+    for p in Datos_simulacion_2:
+        p.ReduceSize(factor)
+    Newt = list()
+    for i in range(len(t)):
+        if i%factor == 0:
+            Newt.append(t[i])
+    return np.array(Newt)
+
+redt_2 = ReduceTimeMultiP(t,10)
+
+
+#Animación 2
+fig = plt.figure(figsize=(5,5))
+ax = plt.axes(projection="3d")
+
+
+def init():
+    ax.set_xlim(-10,10)
+    ax.set_ylim(-10,10)
+    ax.set_zlim(-10,10)
+
+def Update(i):
+    
+    plot = ax.clear()
+    init()
+    plot = ax.set_title(r'$t=%.2f \ seconds$' %(redt[i]), fontsize=15)
+    
+    for p in Datos_simulacion_2:
+        x = p.GetRPosVector()[i,0]
+        y = p.GetRPosVector()[i,1]
+        z = p.GetRPosVector()[i,2]
+        
+        vx = p.GetRVelVector()[i,0]
+        vy = p.GetRVelVector()[i,1]
+        vz = p.GetRVelVector()[i,2]
+        
+        ax.scatter3D(x,y,z,color="k")
+        
+    return plot
+
+Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init)
+plt.show()
