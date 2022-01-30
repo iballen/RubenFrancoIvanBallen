@@ -148,6 +148,7 @@ plt.plot(t,p.GetEVector())
 plt.title("Energía Mecánica")
 plt.xlabel("Tiempo [s]")
 plt.ylabel("Energía [J]")
+plt.savefig("Energía Mecánica.jpg")
 plt.show()
 
 
