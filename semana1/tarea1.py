@@ -141,7 +141,7 @@ def Update(i):
     return plot
 
 Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init(), interval=1)
-#Animation.save('FallingBall.gif', writer="imagemagick")
+Animation.save('FallingBall.gif', writer="imagemagick")
 
 plt.show()
 plt.plot(t,p.GetEVector())
@@ -155,7 +155,8 @@ plt.show()
 Con una definición temporal de 0.01, estimamos con la gráfica y la animación obtenida que
 alrededor de los 19 segundos la pelota deja de rebotar. Sin embargo, acalaramos que necesitamos
 más definición debido a que el resultado obtenido acumuló bastante error proveniente del método
-de Euler."""
+de Euler. En ese orden de ideas, aumentamos la resolución a 0.001 y la reducción en un factor de 100
+obteniendo una mejor simulación y estimando que la pelota se detiene entre los 35 y 40 segundos."""
 
 dt = 0.01
 tmax = 10
@@ -224,5 +225,5 @@ def Update(i):
     return plot
 
 Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init)
-#Animation.save('Gas.gif', writer="imagemagick")
+Animation.save('Gas.gif', writer="imagemagick")
 plt.show()
