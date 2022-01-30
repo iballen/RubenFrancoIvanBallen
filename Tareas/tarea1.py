@@ -92,8 +92,8 @@ def RunSimulation_1(t,p,Limits):
 r0 = np.array([-15.,5.])
 v0 = np.array([1.,0.])
 a0 = np.array([0.,-9.8])
-dt = 0.01
-tmax = 30
+dt = 0.001
+tmax = 40
 t = np.arange(0,tmax+dt,dt)
 Limits = np.array([20,20])
 
@@ -111,7 +111,7 @@ def ReduceTime(t,factor):
             Newt.append(t[i])
     return np.array(Newt)
 
-redt = ReduceTime(t,10)
+redt = ReduceTime(t,100)
 
 
 #Animación
@@ -140,7 +140,9 @@ def Update(i):
 
     return plot
 
-Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init())
+Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init(), interval=1)
+#Animation.save('FallingBall.gif', writer="imagemagick")
+
 plt.show()
 plt.plot(t,p.GetEVector())
 plt.title("Energía Mecánica")
@@ -222,4 +224,5 @@ def Update(i):
     return plot
 
 Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init)
+#Animation.save('Gas.gif', writer="imagemagick")
 plt.show()
