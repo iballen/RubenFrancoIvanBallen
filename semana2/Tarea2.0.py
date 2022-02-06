@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from celluloid import Camera
+from scipy import integrate
 
 #PRESENTACIÓN DE FUNCIONES
 def f(t,n):
@@ -24,6 +25,22 @@ animation=camera.animate()
 animation.save('Fourier.gif')
 
 #------------------------------------------------------------------------------
+
+
+
+
+#------------------------------------------------------------------------------
+#Función zeta de Riemann
+def f_r(t):
+    return (1/np.pi)*((t/12)*(t**2-np.pi**2))**2
+
+def GetRiemann_6():
+    est, error = integrate.quad(lambda t: f_r(t), -np.pi,np.pi)
+    return f"La estimación de zeta(6) es de {est} +/- {error}"
+
+print(GetRiemann_6())
+#------------------------------------------------------------------------------
+
 
 
 
