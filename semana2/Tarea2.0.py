@@ -62,7 +62,7 @@ plt.savefig('Derivada espectral.png')
 #------------------------------------------------------------------------------
 
 # MANCHAS SOLARES
-file = 'ManchasSolares.dat.txt'
+file = 'ManchasSolares.txt'
 data = np.loadtxt(file)
 
 mask1=data[:,0]>=1900
