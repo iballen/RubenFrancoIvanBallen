@@ -1,1 +1,1 @@
-Parial 1 en archivo .py adjunto
+Parcial 1 en archivo .py adjunto
