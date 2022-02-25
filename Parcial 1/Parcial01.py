@@ -7,7 +7,6 @@ Created on Fri Feb 25 12:06:24 2022
 import numpy as np
 import matplotlib.animation as anim
 import matplotlib.pyplot as plt
-from celluloid import Camera
 
 k = 5 
 l = 3 
@@ -64,6 +63,24 @@ for i in range(1,len(t)-1):
     W[i+1]=evolution_vel(W[i],AA[i],AA[i-1],h)
     AR[i+1]=ar(k,m,l,R[i+1],g,THETA[i+1],W[i+1])
     AA[i+1]=aa(g,R[i+1],THETA[i+1],V[i+1],W[i+1])
+
+Rc=np.zeros(len(t))
+THETAc=np.zeros(len(t))
+Vc=np.zeros(len(t))
+Wc=np.zeros(len(t))
+
+Rc[0]=r0
+THETAc[0]=theta0
+Vc[1]=Get_euler(V[0],ar0,h)
+Wc[1]=Get_euler(W[0],aa0,h)
+Rc[1]=Get_euler(R[0],V[1],h)
+THETAc[1]=Get_euler(THETA[0],W[1],h)
+
+for i in range(1,len(t)-1):
+    Vc[i+1]=Vc[1]+(5*AR[i+1]+8*AR[i]-AR[i-1])*h/12
+    Wc[i+1]=Wc[1]+(5*AA[i+1]+8*AA[i]-AA[i-1])*h/12
+    Rc[i+1]=evolution_pos(Rc[i],Vc[i],AR[i],AR[i-1],h)
+    THETAc[i+1]=evolution_pos(THETAc[i],Wc[i],AA[i],AA[i-1],h)
     
 pos=[]
 for i in range(len(t)):
@@ -76,6 +93,11 @@ rV=V[pos]
 rW=W[pos]
 rAR=AR[pos]
 rAA=AA[pos]
+
+rRc=Rc[pos]
+rTHETAc=THETAc[pos]
+rVc=Vc[pos]
+rWc=Wc[pos]
 
 fig = plt.figure(figsize=(5,5))
 ax = fig.add_subplot(1,1,1)
