@@ -1,3 +1,4 @@
+from matplotlib import projections
 import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sym
@@ -91,6 +92,92 @@ print(I0,I1,I2,I3, '\n')
 """
 
 #Problema gravitacional de los N cuerpos
+
+def norma(vector):
+    suma = 0
+    for i in range(len(vector)):
+        suma += vector[i]**2
+    return np.sqrt
+
+class Particle():
+    
+    def __init__(self, r0,v0,a0,t,m,radius,Id):
+        
+        self.dt = t[1]-t[0]
+        
+        self.r = r0
+        self.v = v0
+        self.a = a0
+        
+        self.rVector = np.zeros((len(t),len(r0)))
+        self.vVector = np.zeros((len(t),len(v0)))
+        self.aVector = np.zeros((len(t),len(a0)))
+        
+        self.m = m
+        self.radius = radius
+        self.Id = Id
+        
+        self.MomentumVector = np.zeros((len(t),len(v0)))
+        
+        self.EpVector = np.zeros((len(t),1))
+        self.EkVector = np.zeros((len(t),1))
+        
+        self.Ep = 0.
+        
+        self.Force = self.m * self.a
+
+
+    def CheckForce(self,Lista_particulas):
+        self.Force = 0
+
+        for j in range(len(Lista_particulas)):
+            P = Lista_particulas[j]
+            if self.Id != P.Id:
+                self.Force += (-4*np.pi**2)*(self.m*P.m*(self.r-P.r))/(norma(self.r-P.R)**2+0.1**2)**(3/2)
+
+        return None
+
+    def Verlet_Evolution(self,i):
+        """
+        Antes de ejecutar, asegúrese de que ya ejecutó la función
+        CheckForce para garantizar la evolución del método.
+        """
+        X = self.rVector
+        V = self.vVector
+        self.r = 2*X[i-1]-X[i-2]+self.a*self.dt**2
+        self.v = (self.r-X[i-2])/(2*self.dt)
+        self.rVector[i] = self.r
+        self.vVector[i] = self.v
+        return None
+
+
+def init_particles(N,m,dt):
+    Lista_P = list()
+    Nt = int(2/dt)
+    t = np.linspace(0,2,Nt)
+    for i in range(N):
+        es0 = np.random.rand(3) #Vector en esféricas
+        es0[0] = 1
+        es0[1] *=  np.pi
+        es0[2] *= 2*np.pi
+        r0 = np.zeros(3)
+        r0[0] = es0[0]*np.sin(es0[1])*np.cos(es0[2])
+        r0[1] = es0[0]*np.sin(es0[1])*np.sin(es0[2])
+        r0[2] = es0[0]*np.cos(es0[1])
+        p = Particle(r0,np.zeros(3),np.zeros(3),t,m,0,i)
+        Lista_P.append(p)
+    return Lista_P
+
+Particulas = np.array(init_particles(100,0.01,0.001))
+
+fig = plt.figure()
+ax = fig.add_subplot(111,projection="3d")
+for i in range(100):
+    p = Particulas[i]
+    r = p.r
+    ax.scatter(r[0],r[1],r[2])
+
+plt.show()
 
 """
 -------------------------------------------------------------------------------------------------------------------------------------------------
