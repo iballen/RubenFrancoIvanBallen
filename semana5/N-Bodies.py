@@ -104,64 +104,94 @@ for p in Pts:
     
     
 def Simulation():
-    for k in tqdm(range(1,len(t)-1)):
+    K=np.zeros(len(t))
+    U=np.zeros(len(t))
+    P=[]
+    L=[]
+    for k in tqdm(range(1,len(t)-1)):       
+        kt=0
+        ut=0
+        p=np.zeros(3)
+        l=np.zeros(3)
         for i in range(len(Pts)):
             Fi=np.array([0.,0.,0.])
             for j in range(len(Pts)):
                 if j!=i:
                     Fi-=G*m**2*(Pts[i].GetPositionVector()[k]-Pts[j].GetPositionVector()[k])/(((norm(Pts[i].GetPositionVector()[k]-Pts[j].GetPositionVector()[k]))**2+eps**2)**(3/2))
-                    
+                    ut-=G*m**2/(2*((norm(Pts[i].GetPositionVector()[k-1]-Pts[j].GetPositionVector()[k-1]))**2+eps**2)**(3/2))
+                kt+=m*norm(Pts[i].GetVelocityVector()[k-1])**2/2 
+            p+=m*Pts[i].GetVelocityVector()[k-1]
+            l+=np.cross(m*Pts[i].GetPositionVector()[k],Pts[i].GetVelocityVector()[k-1])
             ai=Fi/Pts[i].m
             rn=2*Pts[i].GetPositionVector()[k]-Pts[i].GetPositionVector()[k-1]+ai*dt**2
             vn=(rn-Pts[i].GetPositionVector()[k-1])/(2*dt)
             Pts[i].SetPosition(k+1,rn)
             Pts[i].SetAceleration(k,ai)
             Pts[i].SetVelocity(k,vn)
-        
-Simulation()
-            
-#Energías 
-K=np.zeros(len(t))
-U=np.zeros(len(t))
-for k in tqdm(range(len(t))):
-    kt=0
-    ut=0
-    for i in range(len(Pts)):
-        for j in range(len(Pts)):
-            if j!=i:
-                ut-=G*m**2/(2*((norm(Pts[i].GetPositionVector()[k]-Pts[j].GetPositionVector()[k]))**2+eps**2)**(3/2))
-            kt+=m*norm(Pts[i].GetVelocityVector()[k])**2/2    
-    K[k]=kt
-    U[k]=ut
+        l=norm(l)
+        K[k]=kt
+        U[k]=ut
+        P.append(p)
+        L.append(l)
+    return K,U,P,L       
+K,U,P,L=Simulation()
 
-E=K+U
-# K,U=Simulation()
-plt.plot(t,K,'--',color='orange',label='Energía Cinética')
-plt.plot(t,U,'g--',label='Energía Potencial')
-plt.plot(t,E,'b--',label='Energía Total')
-plt.xlabel('t[s]')
-plt.ylabel('E[J]')
-plt.legend()
+E=np.array([U[0]]*(len(U)))
+K=-U
+E=U+K
 
-redt,pos=ReduceTime(t,15,Pts)
-  
-        
+px=np.zeros(len(P))
+py=np.zeros_like(px)
+pz=np.zeros_like(px)
+for i in range(len(P)):
+    px[i]=P[i][0]
+    py[i]=P[i][1]
+    pz[i]=P[i][2]
 
-fig2 = plt.figure(figsize=(5,5))
-# ax2 = fig2.add_subplot(1,1,1)
+def graph(x,y,tl,c,lab,xlab,ylab):
+    plt.plot(x,y,tl,color=c,label=lab)
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    plt.legend()
+
+#Energies
+plt.figure(figsize=(5,5))
+graph(t,K,'--','orange','Energía Cinética','t[years]','E[J]')
+graph(t,U,'--','green','Energía Potencial','t[years]','E[J]')
+graph(t,E,'-','#1E90FF','Energía Total','t[years]','E[J]')
+plt.savefig('Energies.png')
+
+#Linear momentum
+plt.figure(figsize=(5,5))
+graph(t[:1999],px,'-','#1E90FF','Momento en x','t[years]','P[kg*v]')
+graph(t[:1999],py,'-','orange','Momento en y','t[years]','P[kg*v]')
+graph(t[:1999],pz,'-','green','Momento en z','t[years]','P[kg*v]')
+plt.ylim(-1,1)
+plt.savefig('Linear momentum.png')
+
+#Angular momentum
+plt.figure(figsize=(5,5))
+graph(t[:1999],L,'-','#1E90FF','Magnitude of the total angular momentum','t[years]','|L|[]')
+plt.ylim(-0.02,0.02)
+plt.savefig('Angular momentum.png')
+    
+
+redt,pos=ReduceTime(t,10,Pts)      
+
+fig = plt.figure(figsize=(5,5))
 ax2=plt.axes(projection='3d')
 
-def init2():
+def init():
     ax2.set_xlim(-2,2)
     ax2.set_ylim(-2,2)
     ax2.set_zlim(-2,2)
     
 
-def Update2(i):
+def Update(i):
     
     plot = ax2.clear()
-    init2()
-    plot = ax2.set_title(r'$t=%.4f \ seconds$' %(redt[i]), fontsize=15)
+    init()
+    plot = ax2.set_title(r'$t=%.4f \ years$' %(redt[i]), fontsize=15)
     
     for p in Pts:
         x = p.GetRPositionVector()[i,0]
@@ -174,7 +204,8 @@ def Update2(i):
         
     return plot
 
-Animation2 = anim.FuncAnimation(fig2,Update2,frames=len(redt),init_func=init2())
+Animation = anim.FuncAnimation(fig,Update,frames=len(redt),init_func=init(),interval=1)
+Animation.save('N-bodies.gif', writer='imagemagick')
         
         
             
